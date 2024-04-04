@@ -5,9 +5,11 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from .model import QNetwork
 
-BUFFER_SIZE = int(1e5)  # replay buffer size
+from .model import QNetwork, QNetworkVisual
+
+#BUFFER_SIZE = int(1e5)  # replay buffer size
+BUFFER_SIZE = int(1e3)  # replay buffer size # For visual
 BATCH_SIZE = 64  # minibatch size
 GAMMA = 0.99  # discount factor
 TAU = 1e-3  # for soft update of target parameters
@@ -20,7 +22,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 class Agent:
     """Interacts with and learns from the environment."""
 
-    def __init__(self, state_size, action_size, seed):
+    def __init__(self, state_size, action_size, visual=False, seed=None):
         """Initialize an Agent object.
 
         Params
@@ -34,8 +36,18 @@ class Agent:
         random.seed(seed)
 
         # Q-Network
-        self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
-        self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
+        self.visual = visual
+        if self.visual:
+            self.qnetwork_local = QNetworkVisual(state_size, action_size, seed).to(
+                device
+            )
+            self.qnetwork_target = QNetworkVisual(state_size, action_size, seed).to(
+                device
+            )
+        else:
+            self.qnetwork_local = QNetwork(state_size, action_size, seed).to(device)
+            self.qnetwork_target = QNetwork(state_size, action_size, seed).to(device)
+
         self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=LR)
 
         # Replay memory
@@ -63,7 +75,10 @@ class Agent:
             state (array_like): current state
             eps (float): epsilon, for epsilon-greedy action selection
         """
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+        if self.visual:
+            state = torch.from_numpy(state).float().to(device)
+        else:
+            state = torch.from_numpy(state).float().unsqueeze(0).to(device)
         self.qnetwork_local.eval()
         with torch.no_grad():
             action_values = self.qnetwork_local(state)
@@ -73,7 +88,7 @@ class Agent:
         if random.random() > eps:
             return np.argmax(action_values.cpu().data.numpy())
 
-        return  np.random.randint(self.action_size)  # select an action
+        return np.random.randint(self.action_size)  # select an action
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
