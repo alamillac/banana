@@ -2,7 +2,6 @@ from collections import deque
 
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 
 
 class DQN:
@@ -59,6 +58,7 @@ class DQN:
         scores = []  # list containing scores from each episode
         scores_window = deque(maxlen=100)  # last 100 scores
         eps = self.eps_start  # initialize epsilon
+        max_score = -np.Inf
         for i_episode in range(1, self.n_episodes + 1):
             state = env.reset()
             score = 0
@@ -77,20 +77,12 @@ class DQN:
             scores.append(score)  # save most recent score
             eps = max(self.eps_end, self.eps_decay * eps)  # decrease epsilon
             avg_score = np.mean(scores_window)
-            #print(f"\rEpisode {i_episode}\tAverage Score: {avg_score:.2f}", end="")
-            print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}")
-            if i_episode % 100 == 0:
-                print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}")
+            print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f} Max avg Score: {max_score:.2f}")
 
-            # TODO: Save the model if the environment is solved or improved
-            # if np.mean(scores_window) >= 200.0:
-            #    print(
-            #        "\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}".format(
-            #            i_episode - 100, np.mean(scores_window)
-            #        )
-            #    )
-            #    torch.save(agent.qnetwork_local.state_dict(), "checkpoint.pth")
-            #    break
+            # Save the model if the agent is improving
+            if avg_score > max_score:
+                max_score = avg_score
+                agent.save(self.save_path)
         agent.save(self.save_path)
         env.close()
         return scores

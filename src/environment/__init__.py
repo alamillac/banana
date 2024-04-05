@@ -10,15 +10,12 @@ class Env:
         self.visual = visual
         if self.visual:
             file_name = "./VisualBanana_Linux/Banana.x86_64"
+            no_graphics = False
         else:
             file_name = "./Banana_Linux/Banana.x86_64"
+            no_graphics = self.train_mode
 
-        if self.train_mode:
-            self.env = UnityEnvironment(
-                file_name=file_name, no_graphics=True
-            )
-        else:
-            self.env = UnityEnvironment(file_name="./Banana_Linux/Banana.x86_64")
+        self.env = UnityEnvironment(file_name=file_name, no_graphics=no_graphics)
 
         # get the default brain
         self.brain_name = self.env.brain_names[0]
