@@ -8,8 +8,8 @@ import torch.optim as optim
 
 from .model import QNetwork, QNetworkVisual
 
-#BUFFER_SIZE = int(1e5)  # replay buffer size
-BUFFER_SIZE = int(1e3)  # replay buffer size # For visual
+BUFFER_SIZE = int(1e5)  # replay buffer size
+#BUFFER_SIZE = int(1e3)  # replay buffer size # For visual
 BATCH_SIZE = 64  # minibatch size
 GAMMA = 0.99  # discount factor
 TAU = 1e-3  # for soft update of target parameters
@@ -75,6 +75,11 @@ class Agent:
             state (array_like): current state
             eps (float): epsilon, for epsilon-greedy action selection
         """
+        # Epsilon-greedy action selection
+        if random.random() < eps:
+            return np.random.randint(self.action_size)  # select a random action
+
+        # Select a greedy action
         if self.visual:
             state = torch.from_numpy(state).float().to(device)
         else:
@@ -84,11 +89,8 @@ class Agent:
             action_values = self.qnetwork_local(state)
         self.qnetwork_local.train()
 
-        # Epsilon-greedy action selection
-        if random.random() > eps:
-            return np.argmax(action_values.cpu().data.numpy())
+        return np.argmax(action_values.cpu().data.numpy())
 
-        return np.random.randint(self.action_size)  # select an action
 
     def learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.

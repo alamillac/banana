@@ -13,4 +13,4 @@ dqn = DQN()
 agent = Agent(state_size=env.state_size, action_size=env.action_size, visual=visual, seed=0)
 agent.load(save_path)
 
-dqn.test(env, agent)
+dqn.test(env, agent, num_episodes=4)
