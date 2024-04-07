@@ -54,6 +54,7 @@ class QNetworkVisual(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.head = nn.Sequential(
+            nn.Flatten(), # flatten all dimensions except batch
             nn.Linear(3136, 512), # 3136 = 64*7*7
             nn.ReLU(),
             nn.Linear(512, action_size),
@@ -63,6 +64,5 @@ class QNetworkVisual(nn.Module):
         """Build a network that maps state -> action values."""
         x = self.backbone(state) # Extract features
         #x = self.avg_pool(x) # Use Global Average Pooling (GAP) Layer
-        x = x.view(x.size(0), -1) # flatten all dimensions except batch
         x = self.head(x)
         return x
