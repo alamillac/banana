@@ -8,7 +8,7 @@
 1. Clone the repository
 2. Create a conda environment
 ```bash
-conda create --name drlnd python=3.6
+conda create --name drlnd python=3.12
 ```
 3. Activate the environment
 ```bash
