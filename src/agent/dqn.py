@@ -95,6 +95,10 @@ class DQN:
                 agent.save(self.save_path)
 
             print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f} Max avg Score: {max_score:.2f}")
+
+            if i_episode % 10 == 0:
+                print(f"Memory size: {len(agent.memory)}")
+
         agent.save(self.save_path)
         env.close()
         return scores

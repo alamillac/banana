@@ -8,8 +8,8 @@ import torch.optim as optim
 
 from .model import QNetwork, QNetworkVisual
 
-BUFFER_SIZE = int(1e5)  # replay buffer size
-#BUFFER_SIZE = int(1e3)  # replay buffer size # For visual
+#BUFFER_SIZE = int(1e5)  # replay buffer size
+BUFFER_SIZE = int(45000)  # replay buffer size # For visual
 BATCH_SIZE = 64  # minibatch size
 GAMMA = 0.99  # discount factor
 TAU = 1e-3  # for soft update of target parameters

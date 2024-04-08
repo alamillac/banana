@@ -42,23 +42,28 @@ class UnityEnvironment(object):
         """
 
         atexit.register(self._close)
-        self.port = base_port + worker_id
+        self.base_port = base_port
+        self.worker_id = worker_id
         self._buffer_size = 12000
         self._version_ = "API-4"
         self._loaded = False    # If true, this means the environment was successfully loaded
         self.proc1 = None       # The process that is started. If None, no process was started
-        self.communicator = self.get_communicator(worker_id, base_port)
+        self.communicator = self.get_communicator(self.worker_id, self.base_port)
 
         # If the environment name is 'editor', a new environment will not be launched
         # and the communicator will directly try to connect to an existing unity environment.
-        if file_name is not None:
-            self.executable_launcher(file_name, docker_training, no_graphics)
+        self.file_name = file_name
+        self.docker_training = docker_training
+        self.no_graphics = no_graphics
+        if self.file_name is not None:
+            self.executable_launcher(self.file_name, self.docker_training, self.no_graphics)
         else:
             logger.info("Start training by pressing the Play button in the Unity Editor.")
         self._loaded = True
 
+        self.seed = seed
         rl_init_parameters_in = UnityRLInitializationInput(
-            seed=seed
+            seed=self.seed
         )
         try:
             aca_params = self.send_academy_parameters(rl_init_parameters_in)
@@ -142,6 +147,11 @@ class UnityEnvironment(object):
     @property
     def external_brain_names(self):
         return self._external_brain_names
+
+
+    @property
+    def port(self):
+        return self.base_port + self.worker_id
 
     def executable_launcher(self, file_name, docker_training, no_graphics):
         cwd = os.getcwd()
@@ -236,6 +246,28 @@ class UnityEnvironment(object):
                                   "\n\t\t".join([str(k) + " -> " + str(self._resetParameters[k])
                                          for k in self._resetParameters])) + '\n' + \
                '\n'.join([str(self._brains[b]) for b in self._brains])
+
+    def initialize(self):
+        self.close()
+        self.proc1 = None
+        self.communicator = self.get_communicator(self.worker_id, self.base_port)
+
+        if self.file_name is not None:
+            self.executable_launcher(self.file_name, self.docker_training, self.no_graphics)
+        self._loaded = True
+
+        rl_init_parameters_in = UnityRLInitializationInput(
+            seed=self.seed
+        )
+        try:
+            aca_params = self.send_academy_parameters(rl_init_parameters_in)
+        except UnityTimeOutException:
+            self._close()
+            raise
+
+    def restart(self, train_mode=True, config=None, lesson=None) -> AllBrainInfo:
+        self.initialize()
+        return self.reset(train_mode, config, lesson)
 
     def reset(self, train_mode=True, config=None, lesson=None) -> AllBrainInfo:
         """

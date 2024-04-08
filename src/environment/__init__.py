@@ -1,13 +1,17 @@
 import time
 import numpy as np
+import random
 
 from unityagents import UnityEnvironment
 
+MAX_SEED_RANGE = 100000
+MAX_RESET_COUNT = 50 # To control memory leak in unity environment :S
 
 class Env:
-    def __init__(self, train_mode=True, visual=False):
+    def __init__(self, train_mode=True, visual=False, seed=None):
         self.train_mode = train_mode
         self.visual = visual
+        self.reset_count = 0
         if self.visual:
             file_name = "./VisualBanana_Linux/Banana.x86_64"
             no_graphics = False
@@ -15,7 +19,10 @@ class Env:
             file_name = "./Banana_Linux/Banana.x86_64"
             no_graphics = self.train_mode
 
-        self.env = UnityEnvironment(file_name=file_name, no_graphics=no_graphics)
+        if seed is None:
+            seed = random.randrange(MAX_SEED_RANGE)
+
+        self.env = UnityEnvironment(file_name=file_name, no_graphics=no_graphics, seed=seed)
 
         # get the default brain
         self.brain_name = self.env.brain_names[0]
@@ -52,11 +59,19 @@ class Env:
         return np.transpose(image, (0, 3, 1, 2)) # Change Channel position: NHWC -> NCHW
 
     def reset(self):
-        env_info = self.env.reset(train_mode=self.train_mode)[self.brain_name]
+        self.reset_count += 1
+
+        if self.visual and self.reset_count % MAX_RESET_COUNT == 0:
+            # Do a restart every MAX_RESET_COUNT to avoid memory leak
+            env_info = self.env.restart(train_mode=self.train_mode)[self.brain_name]
+        else:
+            env_info = self.env.reset(train_mode=self.train_mode)[self.brain_name]
+
         if self.visual:
             state = self._get_visual_state(env_info)
         else:
             state = env_info.vector_observations[0]
+
         return state
 
     def step(self, action):

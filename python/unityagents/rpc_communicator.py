@@ -15,7 +15,9 @@ logger = logging.getLogger("unityagents")
 
 
 class UnityToExternalServicerImplementation(UnityToExternalServicer):
-    parent_conn, child_conn = Pipe()
+    def __init__(self):
+        super().__init__()
+        self.parent_conn, self.child_conn = Pipe()
 
     def Initialize(self, request, context):
         self.child_conn.send(request)
@@ -55,6 +57,7 @@ class RpcCommunicator(Communicator):
                 "Couldn't start socket communication because worker number {} is still in use. "
                 "You may need to manually close a previously opened environment "
                 "or use a different worker number.".format(str(self.worker_id)))
+
         if not self.unity_to_external.parent_conn.poll(30):
             raise UnityTimeOutException(
                 "The Unity environment took too long to respond. Make sure that :\n"
