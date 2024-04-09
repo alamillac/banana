@@ -1,7 +1,7 @@
 from agent import Agent, DQN
 from environment import Env
 
-visual = False
+visual = True
 if visual:
     save_path = "checkpoint_visual.pth"
 else:

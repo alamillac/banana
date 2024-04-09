@@ -32,7 +32,7 @@ class QNetwork(nn.Module):
 class QNetworkVisual(nn.Module):
     """Actor (Policy) Model."""
 
-    def __init__(self, state_shape, action_size, seed):
+    def __init__(self, state_shape, action_size, seed, dropout=0.2):
         """Initialize parameters and build model.
         Params
         ======
@@ -43,11 +43,36 @@ class QNetworkVisual(nn.Module):
         super().__init__()
         self.seed = torch.manual_seed(seed)
         self.backbone = nn.Sequential(
-            nn.Conv2d(state_shape[1], 32, kernel_size=8, stride=4),
+            # Block 1
+            nn.Conv2d(state_shape[1], 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(kernel_size=2, stride=2), # 80 -> 40
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+
+            # Block 2
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2), # 40 -> 20
             nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.Dropout2d(dropout),
+
+            # Block 3
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(kernel_size=2, stride=2), # 20 -> 10
+            nn.ReLU(),
+            nn.Dropout2d(dropout),
+
+            # Block 4
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Dropout2d(dropout),
+
+            # Block 4
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.MaxPool2d(kernel_size=2, stride=2), # 10 -> 5
             nn.ReLU(),
         )
 
@@ -55,14 +80,25 @@ class QNetworkVisual(nn.Module):
 
         self.head = nn.Sequential(
             nn.Flatten(), # flatten all dimensions except batch
-            nn.Linear(3136, 512), # 3136 = 64*7*7
+
+            # Block
+            nn.Linear(512, 1024),
+            nn.BatchNorm1d(1024),
             nn.ReLU(),
+
+            # Block
+            nn.Linear(1024, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+
+            # Block
             nn.Linear(512, action_size),
         )
 
     def forward(self, state):
         """Build a network that maps state -> action values."""
         x = self.backbone(state) # Extract features
-        #x = self.avg_pool(x) # Use Global Average Pooling (GAP) Layer
+        x = self.avg_pool(x) # Use Global Average Pooling (GAP) Layer
         x = self.head(x)
         return x

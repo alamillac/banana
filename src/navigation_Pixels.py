@@ -42,7 +42,9 @@ while True:
     state = next_state  # roll over the state to next time step
     step += 1
     time.sleep(0.1)
-    print(f'\rStep {step} Score: {score}', end="")
+    #print(f'\rStep {step} Score: {score}', end="")
+    print(f'Step {step} Score: {score}')
+    print(f'State: {np.max(state)} {np.min(state)}')
     if done:  # exit loop if episode finished
         break
 
