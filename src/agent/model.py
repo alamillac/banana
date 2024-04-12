@@ -44,36 +44,26 @@ class QNetworkVisual(nn.Module):
         self.seed = torch.manual_seed(seed)
         self.backbone = nn.Sequential(
             # Block 1
-            nn.Conv2d(state_shape[1], 32, kernel_size=3, padding=1),
+            # (W−F+2P)/S+1
+            # (84-8+0)/4+1 = 20
+            nn.Conv2d(state_shape[1], 32, kernel_size=8, stride=4),
             nn.BatchNorm2d(32),
-            nn.MaxPool2d(kernel_size=2, stride=2), # 80 -> 40
             nn.ReLU(),
 
             # Block 2
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            # (20-4+0)/2+1 = 9
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
             nn.BatchNorm2d(64),
-            nn.MaxPool2d(kernel_size=2, stride=2), # 40 -> 20
             nn.ReLU(),
             nn.Dropout2d(dropout),
 
             # Block 3
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.MaxPool2d(kernel_size=2, stride=2), # 20 -> 10
+            # (9-3+0)/1+1 = 7
+            # Output size = (batch, 64, 7, 7)
+            nn.Conv2d(64, 64, kernel_size=3, stride=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Dropout2d(dropout),
-
-            # Block 4
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.Dropout2d(dropout),
-
-            # Block 4
-            nn.Conv2d(256, 512, kernel_size=3, padding=1),
-            nn.BatchNorm2d(512),
-            nn.MaxPool2d(kernel_size=2, stride=2), # 10 -> 5
-            nn.ReLU(),
         )
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -82,12 +72,8 @@ class QNetworkVisual(nn.Module):
             nn.Flatten(), # flatten all dimensions except batch
 
             # Block
-            nn.Linear(512, 1024),
-            nn.BatchNorm1d(1024),
-            nn.ReLU(),
-
-            # Block
-            nn.Linear(1024, 512),
+            # (batch, 64*7*7) -> (batch, 512)
+            nn.Linear(64*7*7, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(),
             nn.Dropout(dropout),
@@ -99,6 +85,5 @@ class QNetworkVisual(nn.Module):
     def forward(self, state):
         """Build a network that maps state -> action values."""
         x = self.backbone(state) # Extract features
-        x = self.avg_pool(x) # Use Global Average Pooling (GAP) Layer
         x = self.head(x)
         return x

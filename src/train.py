@@ -17,4 +17,5 @@ dqn = DQN(n_episodes=2000, max_t=1000, eps_start=1.0, eps_end=0.01, eps_decay=0.
 agent = Agent(state_size=env.state_size, action_size=env.action_size, visual=visual, seed=0)
 #agent.load(save_path) ## Move to train ??
 
-dqn.train(env, agent)
+scores = dqn.train(env, agent)
+dqn.plot_scores(scores)
