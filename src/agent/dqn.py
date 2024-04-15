@@ -88,7 +88,7 @@ class DQN:
     def train_until(self, env, agent, desired_score, consecutive_episodes=100):
         scores_window = deque(maxlen=consecutive_episodes)  # last scores
         scores = []  # list containing scores from each episode
-        for i_episode, score in self._train(env, agent):
+        for i_episode, score in self._train(env, agent, print_step=False):
             scores.append(score)
 
             scores_window.append(score)  # save most recent score
@@ -99,6 +99,8 @@ class DQN:
                 break
 
             print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}", end="")
+            if i_episode % 100 == 0:
+                print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}")
 
         agent.save(self.save_path)
         env.close()
