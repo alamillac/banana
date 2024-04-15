@@ -4,9 +4,9 @@
 
 # Project 1: Navigation
 
-### Introduction
+## Introduction
 
-For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.  
+For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.
 
 ![Trained Agent][image1]
 
@@ -20,29 +20,43 @@ The state space has 37 dimensions and contains the agent's velocity, along with 
 
 The task is episodic, and in order to solve the environment, your agent must get an average score of +13 over 100 consecutive episodes.
 
-### Getting Started
+## Getting Started
 
-1. Download the environment from one of the links below.  You need only select the environment that matches your operating system:
+### Requirements
+- Python 3.6 or later
+- Conda
+
+### Installation
+1. Clone the repository
+2. Create a conda environment
+```bash
+conda create --name drlnd python=3.12
+```
+3. Activate the environment
+```bash
+conda activate drlnd
+```
+4. Install the required packages
+```bash
+pip install -r requirements.txt
+```
+5. Install the requirements from the `python` folder
+```bash
+cd python
+pip install .
+```
+6. Download the Unity environments from one of the links below. You need only select the environment that matches your operating system:
     - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux.zip)
     - Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana.app.zip)
     - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Windows_x86.zip)
     - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Windows_x86_64.zip)
-    
-    (_For Windows users_) Check out [this link](https://support.microsoft.com/en-us/help/827218/how-to-determine-whether-a-computer-is-running-a-32-bit-version-or-64) if you need help with determining if your computer is running a 32-bit version or 64-bit version of the Windows operating system.
+7. Unzip the file and place it in the root directory of the repository
 
-    (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux_NoVis.zip) to obtain the environment.
+### (Optional) Learning from Pixels
 
-2. Place the file in the course GitHub repository, in the `p1_navigation/` folder, and unzip (or decompress) the file. 
+In the project, your agent learned from information such as its velocity, along with ray-based perception of objects around its forward direction.  A more challenging task would be to learn directly from pixels!
 
-### Instructions
-
-Follow the instructions in `Navigation.ipynb` to get started with training your own agent!  
-
-### (Optional) Challenge: Learning from Pixels
-
-After you have successfully completed the project, if you're looking for an additional challenge, you have come to the right place!  In the project, your agent learned from information such as its velocity, along with ray-based perception of objects around its forward direction.  A more challenging task would be to learn directly from pixels!
-
-To solve this harder task, you'll need to download a new Unity environment.  This environment is almost identical to the project environment, where the only difference is that the state is an 84 x 84 RGB image, corresponding to the agent's first-person view.  (**Note**: Udacity students should not submit a project with this new environment.)
+This environment is almost identical to the project environment, where the only difference is that the state is an 84 x 84 RGB image, corresponding to the agent's first-person view.
 
 You need only select the environment that matches your operating system:
 - Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Linux.zip)
@@ -50,6 +64,26 @@ You need only select the environment that matches your operating system:
 - Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86.zip)
 - Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86_64.zip)
 
-Then, place the file in the `p1_navigation/` folder in the course GitHub repository, and unzip (or decompress) the file.  Next, open `Navigation_Pixels.ipynb` and follow the instructions to learn how to use the Python API to control the agent.
+Unzip the file and place it in the root directory of the repository
 
-(_For AWS_) If you'd like to train the agent on AWS, you must follow the instructions to [set up X Server](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md), and then download the environment for the **Linux** operating system above.
+### Testing the Agent
+
+There are already pre-trained weights in the `checkpoint.pth` and `checkpoint_visual.pth` file for 2000 episodes.
+
+To test the agent, run the `test.py` script.
+
+```bash
+python src/test.py
+```
+
+### Training the Agent
+
+To train the agent, run the `train.py` script.
+
+```bash
+python src/train.py
+```
+
+## Implementation
+
+The implementation is based on the Double Deep Q-Network (DDQN) algorithm with some modifications. The modifications include the use of a dueling network architecture and prioritized experience replay.

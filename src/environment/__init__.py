@@ -12,16 +12,14 @@ GRAY_SCALE = False
 MEMORY_SIZE = 3
 
 class Env:
-    def __init__(self, train_mode=True, visual=False, seed=None):
+    def __init__(self, file_name, train_mode=True, visual=False, seed=None):
         self.memory = deque(maxlen=MEMORY_SIZE)
         self.train_mode = train_mode
         self.visual = visual
         self.reset_count = 0
         if self.visual:
-            file_name = "./VisualBanana_Linux/Banana.x86_64"
             no_graphics = False
         else:
-            file_name = "./Banana_Linux/Banana.x86_64"
             no_graphics = self.train_mode
 
         if seed is None:

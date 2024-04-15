@@ -6,12 +6,10 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from .model import QNetwork, QNetworkVisual
+from .model import DuelingDQN, DDQNVisual
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
-BUFFER_SIZE_VISUAL = int(
-    15000
-)  # replay buffer size. Adjust this value based on the memory available
+BUFFER_SIZE_VISUAL = int(1e5)  # replay buffer size. Adjust this value based on the memory available
 BATCH_SIZE = 64  # minibatch size
 GAMMA = 0.99  # discount factor
 TAU = 1e-3  # for soft update of target parameters
@@ -47,10 +45,10 @@ class Agent:
         self.visual = visual
         if self.visual:
             buffer_size = BUFFER_SIZE_VISUAL
-            QNet = QNetworkVisual
+            QNet = DDQNVisual
         else:
             buffer_size = BUFFER_SIZE
-            QNet = QNetwork
+            QNet = DuelingDQN
 
         self.qnetwork_local = QNet(state_size, action_size, seed).to(device)
         self.qnetwork_target = QNet(state_size, action_size, seed).to(device)
