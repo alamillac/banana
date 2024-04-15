@@ -89,3 +89,7 @@ python src/train.py
 ## Implementation
 
 The implementation is based on the Double Deep Q-Network (DDQN) algorithm with some modifications. The modifications include the use of a dueling network architecture and prioritized experience replay.
+
+## Report
+
+The report for this project can be found in the `src/Report.ipynb` file.
