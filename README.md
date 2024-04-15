@@ -70,6 +70,8 @@ Unzip the file and place it in the root directory of the repository
 
 There are already pre-trained weights in the `checkpoint.pth` and `checkpoint_visual.pth` file for 2000 episodes.
 
+The current implementation uses the environment with the ray-based perception for linux. Feel free to change it to the environment with the pixel-based perception and/or for your operating system. You can do this by changing the `env_filename` and `visual` variables in the `test.py` and `train.py` scripts.
+
 To test the agent, run the `test.py` script.
 
 ```bash
