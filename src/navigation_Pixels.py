@@ -3,6 +3,10 @@ from unityagents import UnityEnvironment
 import time
 import matplotlib.pyplot as plt
 
+def to_gray_scale(image):
+    gray = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140]).astype('float32') # extract luminance
+    return gray[..., np.newaxis]  # Add channel dimension
+
 # please do not modify the line below
 env = UnityEnvironment(file_name="./VisualBanana_Linux/Banana.x86_64")
 
@@ -27,6 +31,14 @@ plt.imshow(np.squeeze(state))
 plt.show()
 state_size = state.shape
 print('States have shape:', state.shape)
+
+# Gray scale state
+state = to_gray_scale(env_info.visual_observations[0])
+print('Gray scale states look like:')
+plt.imshow(np.squeeze(state))
+plt.show()
+state_size = state.shape
+print('Gray scale states have shape:', state.shape)
 
 env_info = env.reset(train_mode=False)[brain_name]  # reset the environment
 state = env_info.visual_observations[0]  # get the current state

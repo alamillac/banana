@@ -3,9 +3,11 @@ from environment import Env
 
 visual = False
 if visual:
+    # Pixel based
     save_path = "model_visual.pth"
     env_filename = "./VisualBanana_Linux/Banana.x86_64"
 else:
+    # Vector based
     save_path = "model.pth"
     env_filename = "./Banana_Linux/Banana.x86_64"
 

@@ -3,10 +3,12 @@ from environment import Env
 
 visual = False
 if visual:
+    # Pixel based
     save_path = "model_visual.pth"
     save_checkpoint_path = "checkpoint_visual.pth"
     env_filename = "./VisualBanana_Linux/Banana.x86_64"
 else:
+    # Vector based
     save_path = "model.pth"
     save_checkpoint_path = "checkpoint.pth"
     env_filename = "./Banana_Linux/Banana.x86_64"

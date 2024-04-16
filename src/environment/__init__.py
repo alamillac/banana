@@ -64,10 +64,14 @@ class Env:
         for _ in range(MEMORY_SIZE):
             self.memory.append(observation)
 
+    def _to_gray_scale(self, image):
+        gray = np.dot(image[..., :3], [0.2989, 0.5870, 0.1140]).astype('float32') # extract luminance
+        return gray[..., np.newaxis]  # Add channel dimension
+
     def _get_visual_observation(self, env_info):
         image = env_info.visual_observations[0]
         if GRAY_SCALE:
-            image_gray = np.mean(image, axis=3, keepdims=True)
+            image_gray = self._to_gray_scale(image)
             return np.transpose(
                 image_gray, (0, 3, 1, 2)
             )  # Change Channel position: NHWC -> NCHW
