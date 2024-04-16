@@ -6,21 +6,23 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 
-from .model import DuelingDQN, DDQNVisual
+from .model import DDQNVisual, DuelingDQN
 
 BUFFER_SIZE = int(1e5)  # replay buffer size
-BUFFER_SIZE_VISUAL = int(1e5)  # replay buffer size. Adjust this value based on the memory available
+BUFFER_SIZE_VISUAL = int(
+    1e5
+)  # replay buffer size. Adjust this value based on the memory available
 BATCH_SIZE = 64  # minibatch size
 GAMMA = 0.99  # discount factor
 TAU = 1e-3  # for soft update of target parameters
 LR = 5e-4  # learning rate
 UPDATE_EVERY = 4  # how often to update the network
 
-# Prioritized Experience Replay
-UNIFORM_SAMPLING_ALPHA = 0.6
-BETA_START = 0.4
-BETA_INCREMENT = 0.001
-PRIORITY_EPSILON = 1e-5
+# Prioritized Experience Replay (PER)
+PER_ALPHA = 0.6
+PER_BETA_START = 0.4
+PER_BETA_INCREMENT = 0.001
+PER_EPSILON = 1e-5
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -56,7 +58,7 @@ class Agent:
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, buffer_size, BATCH_SIZE, seed)
-        self.beta = BETA_START
+        self.beta = PER_BETA_START
 
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
@@ -126,8 +128,11 @@ class Agent:
         Q_targets = rewards + (gamma * Q_targets_next * (1 - dones))
 
         # Compute loss
+        # As we are using Prioritized Experience Replay (PER), we need to multiply the loss by the importance sampling weights
         buffer_size = len(self.memory)
-        weights = (buffer_size * sampling_weights) ** (-self.beta) # Importance sampling weights
+        weights = (buffer_size * sampling_weights) ** (
+            -self.beta
+        )  # Importance sampling weights
         weights = weights / weights.max()  # Normalize the weights
 
         weighted_loss = (
@@ -136,7 +141,7 @@ class Agent:
 
         # Update the priorities
         td_errors = torch.abs(Q_expected - Q_targets).detach().squeeze().cpu().numpy()
-        self.memory.update_priority(exp_idx, td_errors + PRIORITY_EPSILON)
+        self.memory.update_priority(exp_idx, td_errors + PER_EPSILON)
 
         # Minimize the loss
         self.optimizer.zero_grad()
@@ -149,7 +154,7 @@ class Agent:
 
         # ------------------- update beta ------------------- #
 
-        self.beta = min(1.0, self.beta + BETA_INCREMENT)
+        self.beta = min(1.0, self.beta + PER_BETA_INCREMENT)
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
@@ -225,7 +230,7 @@ class ReplayBuffer:
     def sample(self):
         """Randomly sample a batch of experiences from memory."""
         priorities = (
-            self.priorities[:self.current_size]**UNIFORM_SAMPLING_ALPHA
+            self.priorities[: self.current_size] ** PER_ALPHA
         )  # To make the sampling more uniform and reduce overfitting
         sampling_weights = priorities / np.sum(priorities)
         idx_experiences = np.random.choice(
