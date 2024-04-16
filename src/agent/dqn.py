@@ -93,7 +93,7 @@ class DQN:
             eps = max(self.eps_end, self.eps_decay * eps)  # decrease epsilon
 
             # Save the checkpoint
-            if i_episode % self.save_every == 0:
+            if (i_episode + 1) % self.save_every == 0:
                 self.save_checkpoint(self.save_checkpoint_path, agent, i_episode)
 
             yield i_episode, score
@@ -115,7 +115,7 @@ class DQN:
             return 0, self.eps_start
 
         checkpoint = torch.load(path)
-        agent.set_state(checkpoint["agent_state"])
+        agent.load_state(checkpoint["agent_state"])
 
         eps = self._init_epsilon(checkpoint["i_episode"])
         return checkpoint["i_episode"], eps
