@@ -1,7 +1,9 @@
+import os
 from collections import deque
 
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 
 class DQN:
@@ -12,7 +14,9 @@ class DQN:
         eps_start=1.0,
         eps_end=0.01,
         eps_decay=0.995,
-        save_path="checkpoint.pth",
+        save_every=100,
+        save_checkpoint_path="checkpoint.pth",
+        save_model_path="model.pth",
     ):
         """Deep Q-Learning.
 
@@ -29,7 +33,9 @@ class DQN:
         self.eps_start = eps_start
         self.eps_end = eps_end
         self.eps_decay = eps_decay
-        self.save_path = save_path
+        self.save_checkpoint_path = save_checkpoint_path
+        self.save_model_path = save_model_path
+        self.save_every = save_every
 
     def plot_scores(self, scores):
         # plot the scores
@@ -61,13 +67,15 @@ class DQN:
             min_score = min(score, min_score)
             scores.append(score)
             avg_score = np.mean(scores)
-            print(f"\rEpisode {i_episode + 1} Score: {score:.2f} Min Score: {min_score:.2f} Max Score: {max_score:.2f} Average Score: {avg_score:.2f}")
+            print(
+                f"\rEpisode {i_episode + 1} Score: {score:.2f} Min Score: {min_score:.2f} Max Score: {max_score:.2f} Average Score: {avg_score:.2f}"
+            )
         env.close()
         return scores
 
     def _train(self, env, agent, print_step=False):
-        eps = self.eps_start  # initialize epsilon
-        for i_episode in range(1, self.max_episodes + 1):
+        init_episode, eps = self.load_checkpoint(self.save_checkpoint_path, agent)
+        for i_episode in range(init_episode, self.max_episodes + 1):
             state = env.reset()
             score = 0
             step = 0
@@ -83,7 +91,34 @@ class DQN:
                 if done:
                     break
             eps = max(self.eps_end, self.eps_decay * eps)  # decrease epsilon
+
+            # Save the checkpoint
+            if i_episode % self.save_every == 0:
+                self.save_checkpoint(self.save_checkpoint_path, agent, i_episode)
+
             yield i_episode, score
+
+    def save_checkpoint(self, path, agent, i_episode):
+        agent_state = agent.get_state()
+        checkpoint = {
+            "i_episode": i_episode,
+            "agent_state": agent_state,
+        }
+        torch.save(checkpoint, path)
+
+    def _init_epsilon(self, i_episode):
+        return max(self.eps_end, self.eps_decay**i_episode)
+
+    def load_checkpoint(self, path, agent):
+        # Check if the file exists
+        if not os.path.isfile(path):
+            return 0, self.eps_start
+
+        checkpoint = torch.load(path)
+        agent.set_state(checkpoint["agent_state"])
+
+        eps = self._init_epsilon(checkpoint["i_episode"])
+        return checkpoint["i_episode"], eps
 
     def train_until(self, env, agent, desired_score, consecutive_episodes=100):
         scores_window = deque(maxlen=consecutive_episodes)  # last scores
@@ -95,14 +130,16 @@ class DQN:
             avg_score = np.mean(scores_window)
 
             if avg_score >= desired_score and i_episode > consecutive_episodes:
-                print(f"\nEnvironment solved in {i_episode} episodes!\tAverage Score: {avg_score:.2f}")
+                print(
+                    f"\nEnvironment solved in {i_episode} episodes!\tAverage Score: {avg_score:.2f}"
+                )
                 break
 
             print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}", end="")
             if i_episode % 100 == 0:
                 print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f}")
 
-        agent.save(self.save_path)
+        agent.save(self.save_model_path)
         env.close()
         return scores
 
@@ -115,17 +152,15 @@ class DQN:
 
             scores_window.append(score)  # save most recent score
             avg_score = np.mean(scores_window)
+            max_score = max(avg_score, max_score)
 
-            # Save the model if the agent is improving
-            if avg_score > max_score:
-                max_score = avg_score
-                agent.save(self.save_path)
-
-            print(f"\rEpisode {i_episode} Average Score: {avg_score:.2f} Max avg Score: {max_score:.2f}")
+            print(
+                f"\rEpisode {i_episode} Average Score: {avg_score:.2f} Max avg Score: {max_score:.2f}"
+            )
 
             if i_episode % 10 == 0:
                 print(f"Memory size: {len(agent.memory)}")
 
-        agent.save(self.save_path)
+        agent.save(self.save_model_path)
         env.close()
         return scores

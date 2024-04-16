@@ -3,10 +3,10 @@ from environment import Env
 
 visual = False
 if visual:
-    save_path = "checkpoint_visual.pth"
+    save_path = "model_visual.pth"
     env_filename = "./VisualBanana_Linux/Banana.x86_64"
 else:
-    save_path = "checkpoint.pth"
+    save_path = "model.pth"
     env_filename = "./Banana_Linux/Banana.x86_64"
 
 env = Env(env_filename, train_mode=False, visual=visual, seed=0)

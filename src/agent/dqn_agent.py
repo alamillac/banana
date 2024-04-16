@@ -180,6 +180,20 @@ class Agent:
         self.qnetwork_local.load_state_dict(torch.load(path))
         self.qnetwork_target.load_state_dict(torch.load(path))
 
+    def get_state(self):
+        return {
+            "local_state_dict": self.qnetwork_local.state_dict(),
+            "target_state_dict": self.qnetwork_target.state_dict(),
+            "optimizer_state_dict": self.optimizer.state_dict(),
+            "beta": self.beta,
+        }
+
+    def load_state(self, state):
+        self.qnetwork_local.load_state_dict(state["local_state_dict"])
+        self.qnetwork_target.load_state_dict(state["target_state_dict"])
+        self.optimizer.load_state_dict(state["optimizer_state_dict"])
+        self.beta = state["beta"]
+
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
